@@ -180,6 +180,17 @@ async function loadCSV() {
 }
 
 /* ===== LOAD & RENDER DATA ===== */
+function formatTanggalIndo(tgl) {
+  if (!tgl) return '';
+  const bulan = [
+    'Januari','Februari','Maret','April','Mei','Juni',
+    'Juli','Agustus','September','Oktober','November','Desember'
+  ];
+  const [d, m, y] = tgl.split('/');
+  return `${parseInt(d)} ${bulan[parseInt(m) - 1]} ${y}`;
+}
+
+
 async function loadData() {
   const csv = await loadCSV();
   const rows = csv.trim().split('\n').slice(1);
@@ -218,7 +229,7 @@ async function loadData() {
     tbody.innerHTML += `
       <tr>
         <td>${no++}</td>
-        <td>${p[0]}</td>
+        <td>${formatTanggalIndo(p[0])}</td>
         <td>${p[1]}</td>
         <td>${p[2]}</td>
         <td>${p[3]}</td>
