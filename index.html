@@ -83,9 +83,24 @@ tfoot td {
 
 <div class="sticky-header">
   <div class="summary">
-    <div class="card"><h3>Total 2025</h3><p id="summary2025">0</p></div>
-    <div class="card"><h3>Total 2026</h3><p id="summary2026">0</p></div>
-    <div class="card"><h3>Total Semua</h3><p id="summaryAll">0</p></div>
+    <div class="card">
+      <h3>Total 2025</h3>
+      <p id="summary2025">0</p>
+    </div>
+    <div class="card">
+      <h3>Total 2026</h3>
+      <p id="summary2026">0</p>
+    </div>
+    <div class="card">
+      <h3>Total Semua</h3>
+      <p id="summaryAll">0</p>
+    </div>
+
+    <!-- CARD BARU (TANPA MERUSAK YANG LAMA) -->
+    <div class="card">
+      <h3 id="summaryMonthTitle">Total Semua (Bulan)</h3>
+      <p id="summaryMonth">0</p>
+    </div>
   </div>
 
   <div class="filter-bar">
@@ -124,7 +139,7 @@ tfoot td {
 </table>
 
 <script>
-/* ===== UTIL ===== */
+/* ===== UTIL (TIDAK DIUBAH) ===== */
 const bulanIndo = [
   'Januari','Februari','Maret','April','Mei','Juni',
   'Juli','Agustus','September','Oktober','November','Desember'
@@ -135,7 +150,6 @@ function formatTanggalIndo(ddmmyyyy) {
   return `${parseInt(d)} ${bulanIndo[m-1]} ${y}`;
 }
 
-/* normalize: dd/mm/yyyy -> yyyy-mm-dd */
 function normalizeDate(ddmmyyyy) {
   const [d,m,y] = ddmmyyyy.split('/');
   return `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
@@ -146,7 +160,7 @@ function parseCSVLine(line) {
              .map(v => v.replace(/^"|"$/g,'').trim());
 }
 
-/* ===== LOAD CSV GOOGLE SHEETS ===== */
+/* ===== LOAD CSV (TIDAK DIUBAH) ===== */
 async function loadCSV() {
   const res = await fetch(
     'https://docs.google.com/spreadsheets/d/e/2PACX-1vRH935f8T5XIyyzq2VV2DiWBrVFP4ywewdut3zpYu9NJ_Nj5DpC546wsWcB8f-YOq1lhHONJMm4i37Q/pub?gid=0&single=true&output=csv',
@@ -163,16 +177,26 @@ async function loadData() {
   const tbody = document.getElementById('tbody');
   tbody.innerHTML = '';
 
-  let t25=0, t26=0, tAll=0, no=1;
+  let t25=0, t26=0, tAll=0, tMonth=0, no=1;
 
   const search = searchInput.value.toLowerCase();
-  const filterDate = dateFilter.value; // yyyy-mm-dd
+  const filterDate = dateFilter.value;
+
+  /* === BULAN BERJALAN OTOMATIS === */
+  const now = new Date();
+  const currentMonth = 
+    now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+  const currentMonthLabel = 
+    bulanIndo[now.getMonth()] + ' ' + now.getFullYear();
+
+  summaryMonthTitle.textContent =
+    'Total Semua (' + currentMonthLabel + ')';
 
   rows.forEach(r=>{
     if(!r.trim()) return;
     const p = parseCSVLine(r);
 
-    const sheetDate = p[0]; // dd/mm/yyyy
+    const sheetDate = p[0];
     const normalized = normalizeDate(sheetDate);
 
     if (filterDate && normalized !== filterDate) return;
@@ -182,7 +206,14 @@ async function loadData() {
     const j26 = parseInt(p[8]) || 0;
     const total = j25 + j26;
 
-    t25+=j25; t26+=j26; tAll+=total;
+    t25 += j25;
+    t26 += j26;
+    tAll += total;
+
+    /* === HITUNG BULAN BERJALAN (TAMBAHAN SAJA) === */
+    if (normalized.slice(0,7) === currentMonth) {
+      tMonth += total;
+    }
 
     tbody.innerHTML += `
       <tr>
@@ -203,6 +234,7 @@ async function loadData() {
   total2025.textContent = summary2025.textContent = t25.toLocaleString();
   total2026.textContent = summary2026.textContent = t26.toLocaleString();
   totalAll.textContent  = summaryAll.textContent  = tAll.toLocaleString();
+  summaryMonth.textContent = tMonth.toLocaleString();
 }
 
 function resetFilter(){
@@ -216,4 +248,3 @@ window.onload = loadData;
 
 </body>
 </html>
-
