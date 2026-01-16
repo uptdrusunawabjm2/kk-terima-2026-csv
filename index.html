@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -11,80 +12,48 @@ body {
   background: #1e1e1e;
   color: #ddd;
 }
-h2 {
-  text-align: center;
-  margin: 10px 0 5px;
-  color: #fff;
-}
-h4 {
-  text-align: center;
-  margin: 0 0 15px;
-  font-weight: normal;
-  color: #bbb;
-}
+h2, h4 { text-align: center; margin: 8px 0; }
+h4 { font-weight: normal; color: #bbb; }
+
 .sticky-header {
   position: sticky;
   top: 0;
-  z-index: 100;
   background: #252525;
   padding: 10px;
   border-bottom: 2px solid #444;
+  z-index: 100;
 }
 .summary {
   display: flex;
-  flex-wrap: wrap;
-  gap: 15px;
+  gap: 12px;
   margin-bottom: 10px;
 }
 .card {
   flex: 1;
-  min-width: 200px;
   background: #2e2e2e;
   padding: 10px;
   border-radius: 8px;
 }
-.card h3 {
-  margin: 0 0 5px;
-  font-size: 16px;
-  color: #ffcc00;
-}
-.card p {
-  margin: 0;
-  font-size: 18px;
-  font-weight: bold;
-  color: #fff;
-}
+.card h3 { margin: 0; color: #ffcc00; font-size: 15px; }
+.card p { margin: 4px 0 0; font-size: 18px; font-weight: bold; }
+
 .filter-bar {
-  text-align: center;
-  margin-bottom: 10px;
   display: flex;
-  flex-wrap: wrap;
   gap: 8px;
   justify-content: center;
 }
-input[type=text],
-input[type=date] {
+input, button {
   padding: 8px;
-  border: 1px solid #666;
   border-radius: 5px;
+  border: 1px solid #666;
   background: #2a2a2a;
   color: #eee;
 }
-button {
-  padding: 8px 14px;
-  border: none;
-  border-radius: 5px;
-  background: #444;
-  color: #fff;
-  cursor: pointer;
-}
-.table-container {
-  width: 100%;
-  overflow-x: auto;
-}
+button { cursor: pointer; }
+
 table {
-  border-collapse: collapse;
   width: 100%;
+  border-collapse: collapse;
   background: #2a2a2a;
 }
 th, td {
@@ -99,9 +68,9 @@ th {
   top: 0;
 }
 tfoot td {
-  font-weight: bold;
   background: #333;
   color: #ffcc00;
+  font-weight: bold;
   position: sticky;
   bottom: 0;
 }
@@ -127,8 +96,7 @@ tfoot td {
   </div>
 </div>
 
-<div class="table-container">
-<table id="dataTable">
+<table>
 <thead>
 <tr>
   <th>No</th>
@@ -144,7 +112,7 @@ tfoot td {
   <th>Total</th>
 </tr>
 </thead>
-<tbody></tbody>
+<tbody id="tbody"></tbody>
 <tfoot>
 <tr>
   <td colspan="7">TOTAL</td>
@@ -155,82 +123,72 @@ tfoot td {
 </tr>
 </tfoot>
 </table>
-</div>
 
 <script>
-/* ===== FORMAT TANGGAL INDONESIA (DISPLAY ONLY) ===== */
-function formatTanggalIndo(tgl) {
-  if (!tgl) return '';
-  const bulan = [
-    'Januari','Februari','Maret','April','Mei','Juni',
-    'Juli','Agustus','September','Oktober','November','Desember'
-  ];
-  const [d, m, y] = tgl.split('/');
-  return `${parseInt(d)} ${bulan[parseInt(m) - 1]} ${y}`;
+/* ===== UTIL ===== */
+const bulanIndo = [
+  'Januari','Februari','Maret','April','Mei','Juni',
+  'Juli','Agustus','September','Oktober','November','Desember'
+];
+
+function formatTanggalIndo(ddmmyyyy) {
+  const [d,m,y] = ddmmyyyy.split('/');
+  return `${parseInt(d)} ${bulanIndo[m-1]} ${y}`;
 }
 
-/* ===== CSV PARSER (AMAN UNTUK "11;12") ===== */
+/* normalize: dd/mm/yyyy -> yyyy-mm-dd */
+function normalizeDate(ddmmyyyy) {
+  const [d,m,y] = ddmmyyyy.split('/');
+  return `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
+}
+
 function parseCSVLine(line) {
-  return line
-    .split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/)
-    .map(v => v.replace(/^"|"$/g, '').trim());
+  return line.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/)
+             .map(v => v.replace(/^"|"$/g,'').trim());
 }
 
-/* ===== GOOGLE SHEETS CSV (REALTIME) ===== */
+/* ===== LOAD CSV GOOGLE SHEETS ===== */
 async function loadCSV() {
   const res = await fetch(
-    'https://docs.google.com/spreadsheets/d/e/2PACX-1vRH935f8T5XIyyzq2VV2DiWBrVFP4ywewdut3zpYu9NJ_Nj5DpC546wsWcB8f-YOq1lhHONJMm4i37Q/pub?gid=0&single=true&output=csv',
+    'https://docs.google.com/spreadsheets/d/e/2PACX-1vRH935f8T5XIyyzq2VV2DiWBrVFP4ywewdut3zpYu9NJ_Nj5DpC546wsWcB8f-YOq1lhHONJMm4i37Q/pub?output=csv',
     { cache: 'no-store' }
   );
-  const text = await res.text();
-  if (!text.includes(',')) {
-    alert('CSV tidak valid atau kosong');
-    throw new Error('CSV invalid');
-  }
-  return text;
+  return await res.text();
 }
 
-/* ===== LOAD & RENDER DATA ===== */
+/* ===== MAIN ===== */
 async function loadData() {
   const csv = await loadCSV();
   const rows = csv.trim().split('\n').slice(1);
-  const tbody = document.querySelector('#dataTable tbody');
+
+  const tbody = document.getElementById('tbody');
   tbody.innerHTML = '';
 
-  let t25 = 0, t26 = 0, tAll = 0;
-  let no = 1;
+  let t25=0, t26=0, tAll=0, no=1;
 
-  const search = document.getElementById('searchInput').value.toLowerCase();
+  const search = searchInput.value.toLowerCase();
+  const filterDate = dateFilter.value; // yyyy-mm-dd
 
-  const rawDate = document.getElementById('dateFilter').value;
-  const selectedDate = rawDate
-    ? rawDate.split('-').reverse().join('/')
-    : '';
-
-  rows.forEach(r => {
-    if (!r.trim()) return;
-
+  rows.forEach(r=>{
+    if(!r.trim()) return;
     const p = parseCSVLine(r);
-    if (p.length < 9) return;
 
-    const tanggalRaw = p[0];
+    const sheetDate = p[0]; // dd/mm/yyyy
+    const normalized = normalizeDate(sheetDate);
 
-    /* FILTER */
+    if (filterDate && normalized !== filterDate) return;
     if (search && !p.join(' ').toLowerCase().includes(search)) return;
-    if (selectedDate && tanggalRaw !== selectedDate) return;
 
     const j25 = parseInt(p[6]) || 0;
     const j26 = parseInt(p[8]) || 0;
     const total = j25 + j26;
 
-    t25 += j25;
-    t26 += j26;
-    tAll += total;
+    t25+=j25; t26+=j26; tAll+=total;
 
     tbody.innerHTML += `
       <tr>
         <td>${no++}</td>
-        <td>${formatTanggalIndo(tanggalRaw)}</td>
+        <td>${formatTanggalIndo(sheetDate)}</td>
         <td>${p[1]}</td>
         <td>${p[2]}</td>
         <td>${p[3]}</td>
@@ -240,23 +198,17 @@ async function loadData() {
         <td>${p[7]}</td>
         <td>${j26.toLocaleString()}</td>
         <td>${total.toLocaleString()}</td>
-      </tr>
-    `;
+      </tr>`;
   });
 
-  document.getElementById('total2025').textContent = t25.toLocaleString();
-  document.getElementById('total2026').textContent = t26.toLocaleString();
-  document.getElementById('totalAll').textContent = tAll.toLocaleString();
-
-  document.getElementById('summary2025').textContent = t25.toLocaleString();
-  document.getElementById('summary2026').textContent = t26.toLocaleString();
-  document.getElementById('summaryAll').textContent = tAll.toLocaleString();
+  total2025.textContent = summary2025.textContent = t25.toLocaleString();
+  total2026.textContent = summary2026.textContent = t26.toLocaleString();
+  totalAll.textContent  = summaryAll.textContent  = tAll.toLocaleString();
 }
 
-/* ===== RESET FILTER ===== */
-function resetFilter() {
-  document.getElementById('searchInput').value = '';
-  document.getElementById('dateFilter').value = '';
+function resetFilter(){
+  searchInput.value='';
+  dateFilter.value='';
   loadData();
 }
 
@@ -265,3 +217,4 @@ window.onload = loadData;
 
 </body>
 </html>
+```
