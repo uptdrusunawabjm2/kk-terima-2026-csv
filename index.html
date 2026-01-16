@@ -85,7 +85,10 @@ function parseCSVLine(line) {
 }
 
 async function loadCSV() {
-  const res = await fetch('data/data-sewa.csv');
+  const res = await fetch(
+    'https://docs.google.com/spreadsheets/d/e/2PACX-1vRH935f8T5XIyyzq2VV2DiWBrVFP4ywewdut3zpYu9NJ_Nj5DpC546wsWcB8f-YOq1lhHONJMm4i37Q/pub?gid=0&single=true&output=csv',
+    { cache: 'no-store' }
+  );
   const text = await res.text();
   if (!text.includes(',')) {
     alert('File CSV tidak valid atau kosong');
@@ -93,6 +96,7 @@ async function loadCSV() {
   }
   return text;
 }
+
 
 async function loadData() {
   const csv = await loadCSV();
