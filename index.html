@@ -72,7 +72,7 @@ async function loadData() {
   const search = document.getElementById('searchInput').value.toLowerCase();
 
   rows.forEach(r=>{
-    const p=r.split(',');
+    const p = r.split(';');
     const tanggal=p[0];
     const bulan=monthNames[parseInt(tanggal.split('/')[1])];
     const j25=parseInt(p[6])||0;
