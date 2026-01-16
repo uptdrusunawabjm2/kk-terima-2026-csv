@@ -35,6 +35,7 @@ h4 { font-weight: normal; color: #bbb; }
 }
 .card h3 { margin: 0; color: #ffcc00; font-size: 15px; }
 .card p { margin: 4px 0 0; font-size: 18px; font-weight: bold; }
+.card small { display:block; margin-top:4px; color:#aaa; }
 
 .filter-bar {
   display: flex;
@@ -83,23 +84,15 @@ tfoot td {
 
 <div class="sticky-header">
   <div class="summary">
-    <div class="card">
-      <h3>Total 2025</h3>
-      <p id="summary2025">0</p>
-    </div>
-    <div class="card">
-      <h3>Total 2026</h3>
-      <p id="summary2026">0</p>
-    </div>
-    <div class="card">
-      <h3>Total Semua</h3>
-      <p id="summaryAll">0</p>
-    </div>
+    <div class="card"><h3>Total 2025</h3><p id="summary2025">0</p></div>
+    <div class="card"><h3>Total 2026</h3><p id="summary2026">0</p></div>
+    <div class="card"><h3>Total Semua</h3><p id="summaryAll">0</p></div>
 
-    <!-- CARD BARU (TANPA MERUSAK YANG LAMA) -->
+    <!-- CARD TAMBAHAN -->
     <div class="card">
       <h3 id="summaryMonthTitle">Total Semua (Bulan)</h3>
       <p id="summaryMonth">0</p>
+      <small id="summaryMonthNote"></small>
     </div>
   </div>
 
@@ -174,7 +167,6 @@ async function loadData() {
   const csv = await loadCSV();
   const rows = csv.trim().split('\n').slice(1);
 
-  const tbody = document.getElementById('tbody');
   tbody.innerHTML = '';
 
   let t25=0, t26=0, tAll=0, tMonth=0, no=1;
@@ -182,15 +174,25 @@ async function loadData() {
   const search = searchInput.value.toLowerCase();
   const filterDate = dateFilter.value;
 
-  /* === BULAN BERJALAN OTOMATIS === */
-  const now = new Date();
-  const currentMonth = 
-    now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
-  const currentMonthLabel = 
-    bulanIndo[now.getMonth()] + ' ' + now.getFullYear();
+  /* === TANGGAL AKHIR PERHITUNGAN === */
+  let endDate = filterDate ? new Date(filterDate) : new Date();
+
+  const activeMonth =
+    endDate.getFullYear() + '-' + String(endDate.getMonth()+1).padStart(2,'0');
 
   summaryMonthTitle.textContent =
-    'Total Semua (' + currentMonthLabel + ')';
+    'Total Semua (' + bulanIndo[endDate.getMonth()] + ' ' + endDate.getFullYear() + ')';
+
+  /* === TEKS KECIL: HANYA SAAT FILTER AKTIF === */
+  if (filterDate) {
+    summaryMonthNote.textContent =
+      'Terhitung sampai tanggal ' +
+      endDate.getDate() + ' ' +
+      bulanIndo[endDate.getMonth()] + ' ' +
+      endDate.getFullYear();
+  } else {
+    summaryMonthNote.textContent = '';
+  }
 
   rows.forEach(r=>{
     if(!r.trim()) return;
@@ -198,6 +200,7 @@ async function loadData() {
 
     const sheetDate = p[0];
     const normalized = normalizeDate(sheetDate);
+    const rowDate = new Date(normalized);
 
     if (filterDate && normalized !== filterDate) return;
     if (search && !p.join(' ').toLowerCase().includes(search)) return;
@@ -206,12 +209,15 @@ async function loadData() {
     const j26 = parseInt(p[8]) || 0;
     const total = j25 + j26;
 
-    t25 += j25;
-    t26 += j26;
-    tAll += total;
+    t25+=j25;
+    t26+=j26;
+    tAll+=total;
 
-    /* === HITUNG BULAN BERJALAN (TAMBAHAN SAJA) === */
-    if (normalized.slice(0,7) === currentMonth) {
+    /* === TOTAL AWAL BULAN → TANGGAL FILTER === */
+    if (
+      normalized.slice(0,7) === activeMonth &&
+      rowDate <= endDate
+    ) {
       tMonth += total;
     }
 
