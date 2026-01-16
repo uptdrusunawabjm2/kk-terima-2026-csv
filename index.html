@@ -158,6 +158,17 @@ tfoot td {
 </div>
 
 <script>
+/* ===== FORMAT TANGGAL INDONESIA (DISPLAY ONLY) ===== */
+function formatTanggalIndo(tgl) {
+  if (!tgl) return '';
+  const bulan = [
+    'Januari','Februari','Maret','April','Mei','Juni',
+    'Juli','Agustus','September','Oktober','November','Desember'
+  ];
+  const [d, m, y] = tgl.split('/');
+  return `${parseInt(d)} ${bulan[parseInt(m) - 1]} ${y}`;
+}
+
 /* ===== CSV PARSER (AMAN UNTUK "11;12") ===== */
 function parseCSVLine(line) {
   return line
@@ -180,17 +191,6 @@ async function loadCSV() {
 }
 
 /* ===== LOAD & RENDER DATA ===== */
-function formatTanggalIndo(tgl) {
-  if (!tgl) return '';
-  const bulan = [
-    'Januari','Februari','Maret','April','Mei','Juni',
-    'Juli','Agustus','September','Oktober','November','Desember'
-  ];
-  const [d, m, y] = tgl.split('/');
-  return `${parseInt(d)} ${bulan[parseInt(m) - 1]} ${y}`;
-}
-
-
 async function loadData() {
   const csv = await loadCSV();
   const rows = csv.trim().split('\n').slice(1);
@@ -213,10 +213,11 @@ async function loadData() {
     const p = parseCSVLine(r);
     if (p.length < 9) return;
 
-    const tanggal = p[0];
+    const tanggalRaw = p[0];
 
+    /* FILTER */
     if (search && !p.join(' ').toLowerCase().includes(search)) return;
-    if (selectedDate && tanggal !== selectedDate) return;
+    if (selectedDate && tanggalRaw !== selectedDate) return;
 
     const j25 = parseInt(p[6]) || 0;
     const j26 = parseInt(p[8]) || 0;
@@ -229,7 +230,7 @@ async function loadData() {
     tbody.innerHTML += `
       <tr>
         <td>${no++}</td>
-        <td>${formatTanggalIndo(p[0])}</td>
+        <td>${formatTanggalIndo(tanggalRaw)}</td>
         <td>${p[1]}</td>
         <td>${p[2]}</td>
         <td>${p[3]}</td>
