@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>KK SEWA 2026</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; background: #1e1e1e; color: #ddd; }
+    h2 { text-align: center; margin: 10px 0 5px; color: #fff; }
+    h4 { text-align: center; margin: 0 0 15px; font-weight: normal; color: #bbb; }
+    .sticky-header { position: sticky; top: 0; z-index: 100; background: #252525; padding: 10px; border-bottom: 2px solid #444; }
+    .summary { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 10px; }
+    .card { flex: 1; min-width: 200px; background: #2e2e2e; padding: 10px; border-radius: 8px; }
+    .card h3 { margin: 0 0 5px; font-size: 16px; color: #ffcc00; }
+    .card p { margin: 0; font-size: 18px; font-weight: bold; color: #fff; }
+    .filter-bar { text-align: center; margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+    input[type=text], select { padding: 8px; border: 1px solid #666; border-radius: 5px; background: #2a2a2a; color: #eee; }
+    button { padding: 8px 14px; border: none; border-radius: 5px; background: #444; color: #fff; cursor: pointer; }
+    .table-container { width: 100%; overflow-x: auto; }
+    table { border-collapse: collapse; width: 100%; background: #2a2a2a; color: #ddd; }
+    th, td { border: 1px solid #444; padding: 6px; text-align: center; }
+    th { background: #333; color: #ffcc00; position: sticky; top: 0; }
+    tfoot td { font-weight: bold; background: #333; color: #ffcc00; position: sticky; bottom: 0; }
+  </style>
+</head>
+<body>
+<h2>Kertas Kerja Penerimaan</h2>
+<h4>PERIODE 2026</h4>
+
+<div class="sticky-header">
+  <div class="summary">
+    <div class="card"><h3>Total 2025</h3><p id="summary2025">0</p></div>
+    <div class="card"><h3>Total 2026</h3><p id="summary2026">0</p></div>
+    <div class="card"><h3>Total Semua</h3><p id="summaryAll">0</p></div>
+  </div>
+  <div class="filter-bar">
+    <input type="text" id="searchInput" placeholder="Cari data..." oninput="loadData()">
+    <select id="monthDropdown" onchange="loadData"><option value="">-- Pilih Bulan --</option></select>
+  </div>
+</div>
+
+<div class="table-container">
+<table id="dataTable">
+<thead>
+<tr>
+<th>No</th><th>Tanggal</th><th>Ref</th><th>STS</th><th>Nama</th><th>Unit</th>
+<th>Periode 2025</th><th>Jumlah 2025</th>
+<th>Periode 2026</th><th>Jumlah 2026</th><th>Total</th>
+</tr>
+</thead>
+<tbody></tbody>
+<tfoot>
+<tr><td colspan="7">TOTAL</td><td id="total2025">0</td><td></td><td id="total2026">0</td><td id="totalAll">0</td></tr>
+</tfoot>
+</table>
+</div>
+
+<script>
+const monthNames = ["","Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+
+async function loadCSV() {
+  const res = await fetch('data/data-sewa.csv');
+  return await res.text();
+}
+
+async function loadData() {
+  const csv = await loadCSV();
+  const rows = csv.trim().split('\n').slice(1);
+  const tbody = document.querySelector('#dataTable tbody');
+  tbody.innerHTML = '';
+
+  let t25=0,t26=0,tAll=0,no=1;
+  const search = document.getElementById('searchInput').value.toLowerCase();
+
+  rows.forEach(r=>{
+    const p=r.split(',');
+    const tanggal=p[0];
+    const bulan=monthNames[parseInt(tanggal.split('/')[1])];
+    const j25=parseInt(p[6])||0;
+    const j26=parseInt(p[8])||0;
+    const total=j25+j26;
+
+    const rowText=r.toLowerCase();
+    if(search && !rowText.includes(search)) return;
+
+    t25+=j25; t26+=j26; tAll+=total;
+
+    tbody.innerHTML+=`<tr>
+      <td>${no++}</td><td>${tanggal}</td><td>${p[1]}</td><td>${p[2]}</td>
+      <td>${p[3]}</td><td>${p[4]}</td>
+      <td>${p[5]}</td><td>${j25.toLocaleString()}</td>
+      <td>${p[7]}</td><td>${j26.toLocaleString()}</td>
+      <td>${total.toLocaleString()}</td>
+    </tr>`;
+  });
+
+  total2025.textContent=t25.toLocaleString();
+  total2026.textContent=t26.toLocaleString();
+  totalAll.textContent=tAll.toLocaleString();
+  summary2025.textContent=t25.toLocaleString();
+  summary2026.textContent=t26.toLocaleString();
+  summaryAll.textContent=tAll.toLocaleString();
+}
+
+window.onload=loadData;
+</script>
+</body>
+</html>
