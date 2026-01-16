@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -150,7 +149,7 @@ function parseCSVLine(line) {
 /* ===== LOAD CSV GOOGLE SHEETS ===== */
 async function loadCSV() {
   const res = await fetch(
-    'https://docs.google.com/spreadsheets/d/e/2PACX-1vRH935f8T5XIyyzq2VV2DiWBrVFP4ywewdut3zpYu9NJ_Nj5DpC546wsWcB8f-YOq1lhHONJMm4i37Q/pub?output=csv',
+    'https://docs.google.com/spreadsheets/d/e/2PACX-1vRH935f8T5XIyyzq2VV2DiWBrVFP4ywewdut3zpYu9NJ_Nj5DpC546wsWcB8f-YOq1lhHONJMm4i37Q/pub?gid=0&single=true&output=csv',
     { cache: 'no-store' }
   );
   return await res.text();
