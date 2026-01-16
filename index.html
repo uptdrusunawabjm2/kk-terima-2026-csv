@@ -1,172 +1,125 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <title>Kertas Kerja Penerimaan 2026</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 0; background: #1e1e1e; color: #ddd; }
-    h2 { text-align: center; margin: 10px 0 5px; color: #fff; }
-    h4 { text-align: center; margin: 0 0 15px; font-weight: normal; color: #bbb; }
-
-    .sticky-header { position: sticky; top: 0; z-index: 100; background: #252525; padding: 10px; border-bottom: 2px solid #444; }
-    .summary { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 10px; }
-    .card { flex: 1; min-width: 200px; background: #2e2e2e; padding: 10px; border-radius: 8px; }
-    .card h3 { margin: 0 0 5px; font-size: 16px; color: #ffcc00; }
-    .card p { margin: 0; font-size: 18px; font-weight: bold; color: #fff; }
-
-    .filter-bar { text-align: center; margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
-    input[type=text], select { padding: 8px; border: 1px solid #666; border-radius: 5px; background: #2a2a2a; color: #eee; }
-    button { padding: 8px 14px; border: none; border-radius: 5px; background: #444; color: #fff; cursor: pointer; }
-
-    .table-container { width: 100%; overflow-x: auto; }
-    table { border-collapse: collapse; width: 100%; background: #2a2a2a; color: #ddd; }
-    th, td { border: 1px solid #444; padding: 6px; text-align: center; }
-    th { background: #333; color: #ffcc00; position: sticky; top: 0; }
-    tfoot td { font-weight: bold; background: #333; color: #ffcc00; position: sticky; bottom: 0; }
-  </style>
+<meta charset="UTF-8">
+<title>Kertas Kerja Penerimaan 2026</title>
+<style>
+body{font-family:Arial;margin:0;background:#1e1e1e;color:#ddd}
+h2,h4{text-align:center;color:#fff}
+h4{color:#bbb;font-weight:normal}
+.sticky-header{position:sticky;top:0;z-index:100;background:#252525;padding:10px;border-bottom:2px solid #444}
+.summary{display:flex;gap:15px;flex-wrap:wrap}
+.card{flex:1;min-width:200px;background:#2e2e2e;padding:10px;border-radius:8px}
+.card h3{margin:0 0 5px;color:#ffcc00}
+.card p{margin:0;font-size:18px;font-weight:bold}
+.filter-bar{text-align:center;margin:10px 0;display:flex;gap:8px;justify-content:center}
+input,button{padding:8px;border-radius:5px;border:1px solid #666;background:#2a2a2a;color:#eee}
+button{cursor:pointer}
+table{width:100%;border-collapse:collapse;background:#2a2a2a}
+th,td{border:1px solid #444;padding:6px;text-align:center}
+th{background:#333;color:#ffcc00;position:sticky;top:0}
+tfoot td{font-weight:bold;background:#333;color:#ffcc00}
+</style>
 </head>
-<body>
 
+<body>
 <h2>Kertas Kerja Penerimaan</h2>
 <h4>PERIODE 2026</h4>
 
 <div class="sticky-header">
-  <div class="summary">
-    <div class="card"><h3>Total 2025</h3><p id="summary2025">0</p></div>
-    <div class="card"><h3>Total 2026</h3><p id="summary2026">0</p></div>
-    <div class="card"><h3>Total Semua</h3><p id="summaryAll">0</p></div>
-  </div>
-
-  <div class="filter-bar">
-    <input type="text" id="searchInput" placeholder="Cari data..." oninput="loadData()">
-    <select id="monthDropdown" onchange="loadData()">
-      <option value="">-- Pilih Bulan --</option>
-    </select>
-    <button onclick="resetFilter()">Reset</button>
-  </div>
+<div class="summary">
+<div class="card"><h3>Total 2025</h3><p id="summary2025">0</p></div>
+<div class="card"><h3>Total 2026</h3><p id="summary2026">0</p></div>
+<div class="card"><h3>Total Semua</h3><p id="summaryAll">0</p></div>
 </div>
 
-<div class="table-container">
+<div class="filter-bar">
+<input type="text" id="searchInput" placeholder="Cari data..." oninput="loadData()">
+<input type="date" id="dateFilter" onchange="loadData()">
+<button onclick="resetFilter()">Reset</button>
+</div>
+</div>
+
 <table id="dataTable">
 <thead>
 <tr>
-  <th>No</th>
-  <th>Tanggal</th>
-  <th>Ref</th>
-  <th>STS</th>
-  <th>Nama</th>
-  <th>Unit</th>
-  <th>Periode 2025</th>
-  <th>Jumlah 2025</th>
-  <th>Periode 2026</th>
-  <th>Jumlah 2026</th>
-  <th>Total</th>
+<th>No</th><th>Tanggal</th><th>Ref</th><th>STS</th><th>Nama</th>
+<th>Unit</th><th>Periode 2025</th><th>Jumlah 2025</th>
+<th>Periode 2026</th><th>Jumlah 2026</th><th>Total</th>
 </tr>
 </thead>
 <tbody></tbody>
 <tfoot>
 <tr>
-  <td colspan="7">TOTAL</td>
-  <td id="total2025">0</td>
-  <td></td>
-  <td id="total2026">0</td>
-  <td id="totalAll">0</td>
+<td colspan="7">TOTAL</td>
+<td id="total2025">0</td>
+<td></td>
+<td id="total2026">0</td>
+<td id="totalAll">0</td>
 </tr>
 </tfoot>
 </table>
-</div>
 
 <script>
-const monthNames = ["","Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
-
-function parseCSVLine(line) {
-  const regex = /,(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)/;
-  return line.split(regex).map(v => v.replace(/^\"|\"$/g, '').trim());
+function parseCSVLine(line){
+return line.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/)
+.map(v=>v.replace(/^"|"$/g,'').trim())
 }
 
-async function loadCSV() {
-  const res = await fetch(
-    'https://docs.google.com/spreadsheets/d/e/2PACX-1vRH935f8T5XIyyzq2VV2DiWBrVFP4ywewdut3zpYu9NJ_Nj5DpC546wsWcB8f-YOq1lhHONJMm4i37Q/pub?gid=0&single=true&output=csv',
-    { cache: 'no-store' }
-  );
-  const text = await res.text();
-  if (!text.includes(',')) {
-    alert('File CSV tidak valid atau kosong');
-    throw new Error('CSV invalid');
-  }
-  return text;
+async function loadCSV(){
+const res=await fetch(
+'https://docs.google.com/spreadsheets/d/e/2PACX-1vRH935f8T5XIyyzq2VV2DiWBrVFP4ywewdut3zpYu9NJ_Nj5DpC546wsWcB8f-YOq1lhHONJMm4i37Q/pub?output=csv',
+{cache:'no-store'}
+)
+const text=await res.text()
+if(!text.includes(','))throw Error('CSV invalid')
+return text
 }
 
+async function loadData(){
+const csv=await loadCSV()
+const rows=csv.trim().split('\n').slice(1)
+const tbody=document.querySelector('tbody')
+tbody.innerHTML=''
 
-async function loadData() {
-  const csv = await loadCSV();
-  const rows = csv.trim().split('\n').slice(1);
-  const tbody = document.querySelector('#dataTable tbody');
-  tbody.innerHTML = '';
+let t25=0,t26=0,tAll=0,no=1
+const search=document.getElementById('searchInput').value.toLowerCase()
+const raw=document.getElementById('dateFilter').value
+const selectedDate=raw?raw.split('-').reverse().join('/'):'';
 
-  let t25 = 0, t26 = 0, tAll = 0, no = 1;
-  const search = document.getElementById('searchInput').value.toLowerCase();
-  const selectedMonth = document.getElementById('monthDropdown').value;
+rows.forEach(r=>{
+const p=parseCSVLine(r)
+if(!p[0])return
+if(search && !p.join(' ').toLowerCase().includes(search))return
+if(selectedDate && p[0]!==selectedDate)return
 
-  const monthSet = new Set();
+const j25=parseInt(p[6])||0
+const j26=parseInt(p[8])||0
+const total=j25+j26
 
-  rows.forEach(r => {
-    if (!r.trim()) return;
-    const p = parseCSVLine(r);
-    if (p.length < 9) return;
+t25+=j25;t26+=j26;tAll+=total
 
-    const tanggal = p[0];
-    const bulanAngka = parseInt(tanggal.split('/')[1]) || 0;
-    const bulanNama = monthNames[bulanAngka];
-    monthSet.add(bulanNama);
+tbody.innerHTML+=`
+<tr>
+<td>${no++}</td><td>${p[0]}</td><td>${p[1]}</td><td>${p[2]}</td>
+<td>${p[3]}</td><td>${p[4]}</td><td>${p[5]}</td>
+<td>${j25.toLocaleString()}</td><td>${p[7]}</td>
+<td>${j26.toLocaleString()}</td><td>${total.toLocaleString()}</td>
+</tr>`
+})
 
-    const rowText = p.join(' ').toLowerCase();
-    if (search && !rowText.includes(search)) return;
-    if (selectedMonth && bulanNama !== selectedMonth) return;
-
-    const j25 = parseInt(p[6]) || 0;
-    const j26 = parseInt(p[8]) || 0;
-    const total = j25 + j26;
-
-    t25 += j25; t26 += j26; tAll += total;
-
-    tbody.innerHTML += `<tr>
-      <td>${no++}</td>
-      <td>${p[0]}</td>
-      <td>${p[1]}</td>
-      <td>${p[2]}</td>
-      <td>${p[3]}</td>
-      <td>${p[4]}</td>
-      <td>${p[5]}</td>
-      <td>${j25.toLocaleString()}</td>
-      <td>${p[7]}</td>
-      <td>${j26.toLocaleString()}</td>
-      <td>${total.toLocaleString()}</td>
-    </tr>`;
-  });
-
-  document.getElementById('total2025').textContent = t25.toLocaleString();
-  document.getElementById('total2026').textContent = t26.toLocaleString();
-  document.getElementById('totalAll').textContent = tAll.toLocaleString();
-  document.getElementById('summary2025').textContent = t25.toLocaleString();
-  document.getElementById('summary2026').textContent = t26.toLocaleString();
-  document.getElementById('summaryAll').textContent = tAll.toLocaleString();
-
-  const monthDropdown = document.getElementById('monthDropdown');
-  if (monthDropdown.options.length === 1) {
-    [...monthSet].sort((a,b)=>monthNames.indexOf(a)-monthNames.indexOf(b))
-      .forEach(m => monthDropdown.innerHTML += `<option value="${m}">${m}</option>`);
-  }
+['total2025','summary2025'].forEach(id=>document.getElementById(id).textContent=t25.toLocaleString())
+['total2026','summary2026'].forEach(id=>document.getElementById(id).textContent=t26.toLocaleString())
+['totalAll','summaryAll'].forEach(id=>document.getElementById(id).textContent=tAll.toLocaleString())
 }
 
-function resetFilter() {
-  document.getElementById('searchInput').value = '';
-  document.getElementById('monthDropdown').value = '';
-  loadData();
+function resetFilter(){
+document.getElementById('searchInput').value=''
+document.getElementById('dateFilter').value=''
+loadData()
 }
 
-window.onload = loadData;
+window.onload=loadData
 </script>
-
 </body>
 </html>
